@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { db } from "../../lib/firebase";
 import { collection, getDocs } from "firebase/firestore";
 
@@ -10,25 +10,29 @@ import AboutImage0 from "@/assets/surtr.gif";
 import AboutImage1 from "@/assets/pepe.gif";
 import AboutImage2 from "@/assets/amiya.gif";
 
-export default function Home() {
-  // ✅ ต้องเป็นอาร์เรย์
-  const [sections, setSections] = useState<any[]>([]);
-  const sectionRef = collection(db, "sections");
+type Section = {
+  id: string;
+  title: string;
+  subtitles: string;
+  description: string;
+};
 
-  // ✅ ดึงข้อมูลจาก Firestore
-  const fetchSections = async () => {
+export default function Home() {
+  const [sections, setSections] = useState<Section[]>([]);
+
+  const fetchSections = useCallback(async () => {
+    const sectionRef = collection(db, "sections"); // <== moved here
     const snapshot = await getDocs(sectionRef);
     const data = snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
-    }));
-    console.log("Fetched sections:", data);
+    })) as Section[];
     setSections(data);
-  };
+  }, []);
 
   useEffect(() => {
     fetchSections();
-  }, []);
+  }, [fetchSections]);
 
   return (
     <main className="min-h-screen flex justify-center flex-col bg-blue-400">
